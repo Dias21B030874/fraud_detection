@@ -8,7 +8,6 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 # Настройка страницы
 st.set_page_config(page_title="Fraud Detection App", page_icon="💳", layout="wide")
-st.set_option('deprecation.showPyplotGlobalUse', False)
 
 # --- 1. ВСТАВЛЯЕМ КАСТОМНЫЕ КЛАССЫ ИЗ ВАШЕГО НОУТБУКА ---
 class CyclicalTimeTransformer(BaseEstimator, TransformerMixin):
@@ -128,4 +127,4 @@ if st.button("🔍 Predict Fraud Risk", type="primary"):
                 st.pyplot(fig)
                 plt.clf()
             except Exception as e:
-                st.warning(f"Could not generate SHAP explanation. Model architecture might not support TreeExplainer. Error: {e}")
+                st.warning(f"Could not generate SHAP explanation. Error: {e}")
