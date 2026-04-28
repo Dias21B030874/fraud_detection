@@ -6,10 +6,8 @@ import shap
 import matplotlib.pyplot as plt
 from sklearn.base import BaseEstimator, TransformerMixin
 
-# Настройка страницы
 st.set_page_config(page_title="Fraud Detection App", page_icon="💳", layout="wide")
 
-# --- 1. ВСТАВЛЯЕМ КАСТОМНЫЕ КЛАССЫ ИЗ ВАШЕГО НОУТБУКА ---
 class CyclicalTimeTransformer(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         return self
@@ -48,7 +46,6 @@ This application predicts the probability of a transaction being fraudulent.
 Adjust the most critical PCA features and the transaction amount in the sidebar to see how the model's decision changes in real-time.
 """)
 
-# 2. Загрузка модели
 @st.cache_resource
 def load_model():
     return joblib.load('fraud_model.pkl')
@@ -59,16 +56,22 @@ except Exception as e:
     st.error(f"Error loading model: {e}. Please ensure 'fraud_model.pkl' is in the directory.")
     st.stop()
 
-# 3. Боковая панель ввода
 st.sidebar.header("⚙️ Transaction Features")
 st.sidebar.write("Adjust the most impactful features (based on SHAP analysis):")
 
 def user_input_features():
-    v14 = st.sidebar.slider('V14 (Strongest Fraud Signal)', -20.0, 10.0, -5.0)
-    v12 = st.sidebar.slider('V12', -15.0, 10.0, -2.0)
-    v17 = st.sidebar.slider('V17', -15.0, 10.0, -3.0)
-    v10 = st.sidebar.slider('V10', -15.0, 10.0, -1.0)
-    v4  = st.sidebar.slider('V4', -5.0, 15.0, 2.0)
+    st.sidebar.markdown("### 🔴 Negative Fraud Drivers")
+    v14 = st.sidebar.slider('V14', -20.0, 10.0, -9.0)  
+    v12 = st.sidebar.slider('V12', -20.0, 10.0, -10.2)
+    v17 = st.sidebar.slider('V17', -20.0, 10.0, -9.8)
+    v10 = st.sidebar.slider('V10', -20.0, 10.0, -7.2)
+    v3  = st.sidebar.slider('V3', -20.0, 10.0, -7.8) 
+
+    st.sidebar.markdown("### 🟢 Positive Fraud Drivers")
+    v4  = st.sidebar.slider('V4', -5.0, 15.0, 5.4)
+    v11 = st.sidebar.slider('V11', -5.0, 15.0, 7.3)    
+    
+    st.sidebar.markdown("### 💰 Transaction Details")
     amount = st.sidebar.number_input('Transaction Amount ($)', min_value=0.0, max_value=25000.0, value=150.0)
     time = st.sidebar.number_input('Time (Seconds since start)', min_value=0, value=3600)
     
@@ -81,7 +84,9 @@ def user_input_features():
     data['V12'] = v12
     data['V17'] = v17
     data['V10'] = v10
-    data['V4'] = v4
+    data['V3']  = v3
+    data['V4']  = v4
+    data['V11'] = v11
     
     columns = ['Time'] + [f'V{i}' for i in range(1, 29)] + ['Amount']
     df = pd.DataFrame(data, index=[0])[columns]
@@ -89,7 +94,6 @@ def user_input_features():
 
 input_df = user_input_features()
 
-# 4. Кнопка предсказания
 if st.button("🔍 Predict Fraud Risk", type="primary"):
     with st.spinner('Analyzing transaction...'):
         proba = model.predict_proba(input_df)[0][1]
@@ -106,7 +110,6 @@ if st.button("🔍 Predict Fraud Risk", type="primary"):
                 st.success(f"✅ LOW RISK")
                 st.metric(label="Fraud Probability", value=f"{proba*100:.1f}%")
 
-        # График SHAP
         with col2:
             st.subheader("Decision Explanation (SHAP)")
             st.write("This waterfall plot shows exactly which features pushed the risk score up (red) or down (blue).")
